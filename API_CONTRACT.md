@@ -33,7 +33,7 @@ Tất cả các API trả về BẮT BUỘC phải tuân theo cấu trúc JSON s
 ### 2.1. Đăng nhập
 
 * **Method:** `POST /auth/login`
-* **Mô tả:** Frontend gửi user/pass để lấy Token đăng nhập.
+* **Mô tả:** Frontend gửi user/pass để lấy cặp Token đăng nhập (Access Token & Refresh Token).
 * **Request Body:**
 ```json
 {
@@ -48,11 +48,34 @@ Tất cả các API trả về BẮT BUỘC phải tuân theo cấu trúc JSON s
   "message": "Đăng nhập thành công",
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1...",
+    "refreshToken": "eyJhbGciOiJIUzI1R...",
     "user": {
       "id": 1,
       "username": "admin",
       "role": "ADMIN"
     }
+  }
+}
+```
+
+### 2.2. Làm mới Token (Refresh Token)
+
+* **Method:** `POST /auth/refresh`
+* **Mô tả:** Frontend gửi `refreshToken` để làm mới `accessToken` khi token cũ đã hết hạn (thông thường accessToken sống 15 phút, refreshToken sống 7 ngày).
+* **Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1R..."
+}
+```
+* **Response (Success):**
+```json
+{
+  "success": true,
+  "message": "Làm mới token thành công",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1...",
+    "refreshToken": "eyJhbGciOiJIUzI1R..." // Có thể trả về token mới hoặc giữ nguyên
   }
 }
 ```
