@@ -373,3 +373,110 @@ Nhóm API này xử lý yêu cầu cào dữ liệu, gọi Google Gemini để p
   }
 }
 ```
+
+---
+
+## 7. GIAO TIẾP SỰ KIỆN BOT MEZON (MEZON BOT SDK WEBHOOKS & EVENTS)
+Phần này định nghĩa các cấu trúc sự kiện (Events) mà Bot Backend nhận được khi lắng nghe kết nối thời gian thực (WebSockets/Gateway) hoặc thông qua HTTP Webhook Callback từ máy chủ Mezon Developer Portal.
+
+### 7.1. Sự kiện Nhận tin nhắn (Message Event)
+* **Event Type:** `CHANNEL_MESSAGE`
+* **Mô tả:** Kích hoạt khi có người dùng gõ lệnh chat trong kênh Mezon (Ví dụ: `/roadmap`, `/youtube`, `/digest`, `/dashboard`, `/help`).
+* **Event Payload:**
+```json
+{
+  "event_type": "CHANNEL_MESSAGE",
+  "sender": {
+    "user_id": 9876543210,
+    "username": "hoang_minh",
+    "display_name": "Minh Hoàng"
+  },
+  "channel_id": "chan-00129",
+  "message_id": "msg-12345678",
+  "content": "/roadmap topic:\"Lập trình Python\" folder_name:\"Python_Basic\"",
+  "attachments": [],
+  "timestamp": "2026-07-13T14:40:00Z"
+}
+```
+
+### 7.2. Sự kiện Đính kèm tài liệu (Document Upload Event)
+* **Event Type:** `DOCUMENT_ATTACHMENT`
+* **Mô tả:** Kích hoạt khi người dùng tải lên tài liệu (`.pdf`, `.docx`) đính kèm câu lệnh `/digest` trong phòng chat.
+* **Event Payload:**
+```json
+{
+  "event_type": "DOCUMENT_ATTACHMENT",
+  "sender": {
+    "user_id": 9876543210,
+    "username": "hoang_minh"
+  },
+  "channel_id": "chan-00129",
+  "message_id": "msg-987654",
+  "content": "/digest",
+  "attachments": [
+    {
+      "id": "att-pdf-99",
+      "file_name": "Lap_trinh_huong_doi_tuong.pdf",
+      "file_size": 2048576,
+      "url": "https://cdn.mezon.ai/attachments/hoang_minh/Lap_trinh_huong_doi_tuong.pdf",
+      "mime_type": "application/pdf"
+    }
+  ],
+  "timestamp": "2026-07-13T14:42:00Z"
+}
+```
+
+### 7.3. Sự kiện Click nút bấm tương tác (Button Interaction Event)
+* **Event Type:** `BUTTON_INTERACTION`
+* **Mô tả:** Kích hoạt khi người dùng click vào các nút bấm trong bảng tin nhắn Rich Embed do Bot gửi về (Ví dụ: Nút `[📁 Đọc ngay trên Mezon]` hoặc `[🌐 Mở Web Dashboard]`).
+* **Event Payload:**
+```json
+{
+  "event_type": "BUTTON_INTERACTION",
+  "user_id": 9876543210,
+  "channel_id": "chan-00129",
+  "message_id": "msg-embed-1122",
+  "button_id": "btn-open-web",
+  "custom_id": "action:open_dashboard;folder_id:folder-1;file_id:file-1-1",
+  "timestamp": "2026-07-13T14:45:00Z"
+}
+```
+
+---
+
+## 8. CƠ SỞ DỮ LIỆU SQL (DATABASE SCHEMA)
+Phần này mô tả cấu trúc bảng trong cơ sở dữ liệu quan hệ MySQL dùng để lưu trữ cấu trúc thư mục ảo cá nhân hóa và các tài liệu tri thức dưới dạng Markdown.
+
+```sql
+-- 1. Bảng users (Lưu thông tin người dùng đồng bộ từ Mezon)
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT PRIMARY KEY, -- ID người dùng Mezon (ví dụ: 9876543210)
+    username VARCHAR(100) NOT NULL, -- Tên tài khoản người dùng
+    display_name VARCHAR(100) DEFAULT NULL, -- Tên hiển thị của người dùng
+    role VARCHAR(20) DEFAULT 'USER', -- Quyền: 'USER', 'ADMIN'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Bảng folders (Quản lý thư mục ảo cá nhân hóa theo từng User)
+CREATE TABLE IF NOT EXISTS folders (
+    id VARCHAR(50) PRIMARY KEY, -- Sử dụng UUID hoặc chuỗi string định danh (ví dụ: folder-123)
+    name VARCHAR(255) NOT NULL, -- Tên thư mục (ví dụ: Lộ trình Python)
+    type VARCHAR(20) NOT NULL, -- Thể loại: 'roadmap', 'document', 'video', 'general'
+    user_id BIGINT NOT NULL,   -- Khóa ngoại liên kết đến bảng users để cá nhân hóa
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. Bảng knowledge_files (Quản lý các file tài liệu Markdown nằm trong thư mục)
+CREATE TABLE IF NOT EXISTS knowledge_files (
+    id VARCHAR(50) PRIMARY KEY, -- Định danh file (ví dụ: file-1-1)
+    folder_id VARCHAR(50) NOT NULL, -- Khóa ngoại liên kết với thư mục chứa nó
+    name VARCHAR(255) NOT NULL, -- Tên file (ví dụ: Tong_quan.md)
+    markdown_content LONGTEXT NOT NULL, -- Nội dung chữ Markdown do Gemini sinh ra hoặc user sửa
+    video_url VARCHAR(500) DEFAULT NULL, -- Đường link video gốc (nếu bóc tách từ YouTube)
+    timestamps_json JSON DEFAULT NULL, -- Lưu danh sách mốc thời gian dạng JSON để tua video
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE
+);
+```

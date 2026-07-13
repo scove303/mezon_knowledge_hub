@@ -1,46 +1,39 @@
--- Tạo database
-CREATE DATABASE IF NOT EXISTS mezon_hub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE mezon_hub;
+-- ====================================================================
+-- DATABASE SCHEMA: MEZON KNOWLEDGE HUB BOT (AI-KHB)
+-- ====================================================================
 
--- 1. Bảng users
+-- 1. Bảng users (Lưu thông tin người dùng đồng bộ từ Mezon)
 CREATE TABLE IF NOT EXISTS users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'EDITOR',
+    id BIGINT PRIMARY KEY, -- ID người dùng Mezon (ví dụ: 9876543210)
+    username VARCHAR(100) NOT NULL, -- Tên tài khoản người dùng
+    display_name VARCHAR(100) DEFAULT NULL, -- Tên hiển thị của người dùng
+    role VARCHAR(20) DEFAULT 'USER', -- Quyền: 'USER', 'ADMIN'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Bảng knowledge_entries
-CREATE TABLE IF NOT EXISTS knowledge_entries (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    question VARCHAR(500) NOT NULL,
-    answer LONGTEXT NOT NULL,
-    author_id BIGINT,
-    is_active BOOLEAN DEFAULT TRUE,
+-- 2. Bảng folders (Quản lý thư mục ảo cá nhân hóa theo từng User)
+CREATE TABLE IF NOT EXISTS folders (
+    id VARCHAR(50) PRIMARY KEY, -- Sử dụng UUID hoặc chuỗi string định danh (ví dụ: folder-123)
+    name VARCHAR(255) NOT NULL, -- Tên thư mục (ví dụ: Lộ trình Python)
+    type VARCHAR(20) NOT NULL, -- Thể loại: 'roadmap', 'document', 'video', 'general'
+    user_id BIGINT NOT NULL,   -- Khóa ngoại liên kết đến bảng users để cá nhân hóa
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. Bảng knowledge_files (Quản lý các file tài liệu Markdown nằm trong thư mục)
+CREATE TABLE IF NOT EXISTS knowledge_files (
+    id VARCHAR(50) PRIMARY KEY, -- Định danh file (ví dụ: file-1-1)
+    folder_id VARCHAR(50) NOT NULL, -- Khóa ngoại liên kết với thư mục chứa nó
+    name VARCHAR(255) NOT NULL, -- Tên file (ví dụ: Tong_quan.md)
+    markdown_content LONGTEXT NOT NULL, -- Nội dung chữ Markdown do Gemini sinh ra hoặc user sửa
+    video_url VARCHAR(500) DEFAULT NULL, -- Đường link video gốc (nếu bóc tách từ YouTube)
+    timestamps_json JSON DEFAULT NULL, -- Lưu danh sách mốc thời gian dạng JSON để tua video
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE
 );
 
--- 3. Bảng tags
-CREATE TABLE IF NOT EXISTS tags (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
-
--- 4. Bảng knowledge_tags (Bảng trung gian)
-CREATE TABLE IF NOT EXISTS knowledge_tags (
-    knowledge_id BIGINT,
-    tag_id INT,
-    PRIMARY KEY (knowledge_id, tag_id),
-    FOREIGN KEY (knowledge_id) REFERENCES knowledge_entries(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
-
--- 5. Bảng bot_configs
-CREATE TABLE IF NOT EXISTS bot_configs (
-    config_key VARCHAR(50) PRIMARY KEY,
-    config_value JSON NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+-- Thêm các chỉ mục (Indexes) để tối ưu hóa hiệu năng truy vấn cây thư mục
+CREATE INDEX idx_folders_user ON folders(user_id);
+CREATE INDEX idx_files_folder ON knowledge_files(folder_id);
