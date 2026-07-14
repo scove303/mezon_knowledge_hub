@@ -4,19 +4,20 @@
 
 -- 1. Bảng users (Lưu thông tin người dùng đồng bộ từ Mezon)
 CREATE TABLE IF NOT EXISTS users (
-    id BIGINT PRIMARY KEY, -- ID người dùng Mezon (ví dụ: 9876543210)
-    username VARCHAR(100) NOT NULL, -- Tên tài khoản người dùng
-    display_name VARCHAR(100) DEFAULT NULL, -- Tên hiển thị của người dùng
+    id INT AUTO_INCREMENT PRIMARY KEY, -- ID nội bộ
+    username VARCHAR(100) NOT NULL UNIQUE, -- Tên tài khoản (cho Web Dashboard)
+    display_name VARCHAR(100) DEFAULT NULL, -- Tên hiển thị
+    hashed_password VARCHAR(255) NOT NULL, -- Mật khẩu đã mã hóa
     role VARCHAR(20) DEFAULT 'USER', -- Quyền: 'USER', 'ADMIN'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2. Bảng folders (Quản lý thư mục ảo cá nhân hóa theo từng User)
 CREATE TABLE IF NOT EXISTS folders (
-    id VARCHAR(50) PRIMARY KEY, -- Sử dụng UUID hoặc chuỗi string định danh (ví dụ: folder-123)
-    name VARCHAR(255) NOT NULL, -- Tên thư mục (ví dụ: Lộ trình Python)
-    type VARCHAR(20) NOT NULL, -- Thể loại: 'roadmap', 'document', 'video', 'general'
-    user_id BIGINT NOT NULL,   -- Khóa ngoại liên kết đến bảng users để cá nhân hóa
+    id VARCHAR(50) PRIMARY KEY, -- Định danh folder (ví dụ: folder-123)
+    name VARCHAR(255) NOT NULL, -- Tên thư mục
+    type VARCHAR(20) DEFAULT 'general', -- Thể loại: 'roadmap', 'document', 'video', 'general'
+    user_id INT NOT NULL,   -- Khóa ngoại liên kết bảng users
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

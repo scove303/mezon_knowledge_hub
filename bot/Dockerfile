@@ -1,18 +1,19 @@
-﻿FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Cài đặt các thư viện hệ thống cần thiết (nếu có dùng Playwright để cào web)
-RUN apt-get update && apt-get install -y \
-    curl \
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libmariadb-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Cài đặt trình duyệt cho Playwright (nếu bot cần cào dữ liệu web)
-RUN playwright install --with-deps chromium
-
+# Copy source code
 COPY . .
 
-CMD ["python", "main.py"]
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

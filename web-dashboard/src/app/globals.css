@@ -1,81 +1,50 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 @plugin "@tailwindcss/typography";
 
-:root {
-  --background: #020617;
-  --foreground: #f8fafc;
-  
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
-  
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  
-  --secondary: #475569;
-  --secondary-foreground: #f8fafc;
-  
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-  
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #6366f1;
-  
-  --radius: 0.5rem;
-}
-
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
 body {
-  background-color: #020617;
-  color: #f8fafc;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-text-primary));
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow: hidden;
   height: 100vh;
   margin: 0;
 }
 
-/* Custom scrollbars */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* ─── Custom Scrollbar ──────────────────────────────────────────────────────── */
+.scrollbar-thin::-webkit-scrollbar { width: 5px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: rgb(var(--color-surface-2));
+  border-radius: 4px;
 }
-
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgb(var(--color-surface-3));
 }
 
-/* Animations */
+/* ─── Animations ────────────────────────────────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
-@keyframes slideIn {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes slideInRight {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out forwards;
+@keyframes slideInLeft {
+  from { transform: translateX(-16px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
 }
 
-.animate-slide-in {
-  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
 }
+
+.animate-fade-in         { animation: fadeIn 200ms ease forwards; }
+.animate-slide-in-right  { animation: slideInRight 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-in-left   { animation: slideInLeft  300ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-pulse           { animation: pulse 2s ease-in-out infinite; }

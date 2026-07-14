@@ -1,3 +1,5 @@
+// TODO: Replace localStorage reads/writes with folderService and fileService
+// calls once the FastAPI backend is running. See src/services/ for the API layer.
 import { useState, useEffect } from 'react';
 
 const INITIAL_FOLDERS = [
