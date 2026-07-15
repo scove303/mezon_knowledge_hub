@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Database
-    DB_HOST: str = "localhost"
+    DB_HOST: str = "127.0.0.1"
     DB_PORT: int = 3306
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
@@ -31,11 +31,13 @@ class Settings(BaseSettings):
     # External APIs
     GEMINI_API_KEY: str = ""
     MEZON_BOT_TOKEN: str = ""
+    MEZON_BOT_ID: str = ""
+    TAVILY_API_KEY: str = ""
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 
-    model_config = {"env_file": ".env", "case_sensitive": True}
+    model_config = {"env_file": "../.env", "case_sensitive": True}
 
 
 settings = Settings()

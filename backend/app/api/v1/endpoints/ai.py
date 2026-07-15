@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile, BackgroundTasks
 from sqlmodel import Session
 
 from app.core.database import get_session
@@ -12,30 +12,40 @@ router = APIRouter()
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
+def process_heavy_job(job_id: str, payload: dict):
+    # Giả lập xử lý ngầm
+    import time
+    print(f"[WORKER] Bắt đầu xử lý Job {job_id} với payload: {payload}")
+    time.sleep(5)
+    print(f"[WORKER] Hoàn tất Job {job_id}")
+
+
 @router.post("/roadmap")
 async def generate_roadmap(
     topic: str,
     folder_name: str,
     session: SessionDep,
     current_user: CurrentUser,
+    background_tasks: BackgroundTasks,
 ):
     """
     Tạo lộ trình học tập tự động từ Internet.
-    TODO: Tích hợp Tavily search + Gemini 1.5 Flash summarization
     """
-    folder_id = f"folder-{uuid.uuid4().hex[:8]}"
+    job_id = f"job-{uuid.uuid4().hex[:8]}"
+    background_tasks.add_task(process_heavy_job, job_id, {"topic": topic, "folder_name": folder_name})
+    
     return success_response(
         message="Đang tổng hợp lộ trình học tập, vui lòng kiểm tra lại sau vài giây",
-        data={"folder_id": folder_id, "folder_name": folder_name, "topic": topic},
+        data={"job_id": job_id, "folder_name": folder_name, "topic": topic},
     )
 
 
 @router.post("/digest")
 async def digest_document(
+    session: SessionDep,
+    current_user: CurrentUser,
     folder_id: str = Form(...),
     file: UploadFile = File(...),
-    session: Session = Depends(get_session),
-    current_user: CurrentUser = Depends(),
 ):
     """
     Bóc tách và tóm tắt tài liệu PDF/DOCX.
