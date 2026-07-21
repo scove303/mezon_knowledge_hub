@@ -19,7 +19,7 @@ import { authService } from "@/features/auth/services";
 import { useAuthStore } from "@/features/auth/store";
 import { useWorkspaceStore } from "@/features/folders/store";
 import { folderService } from "@/features/folders/services";
-import Avatar from "@/features/require/components/Avatar";
+import UserProfileMenu from "@/features/require/components/UserProfileMenu";
 
 export default function Sidebar() {
   const store = useWorkspaceStore();
@@ -354,14 +354,16 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="p-4 bg-[rgb(var(--color-bg))] border-t border-[rgb(var(--color-border))] text-[10px] text-[rgb(var(--color-text-muted))] flex flex-col space-y-1">
-        <div className="flex justify-end">
-          <Avatar />
-        </div>
-        {/* <div className="flex justify-between">
+        <UserProfileMenu />
+
+        {/* <div className="flex justify-between items-center px-1 text-[10px] text-[rgb(var(--color-text-muted))] pt-1">
           <span>Phiên bản UI</span>
-          <span className="font-semibold text-[rgb(var(--color-text-secondary))]">2.0.0</span>
-        </div>
-        <div className="flex justify-between">
+          <span className="font-mono font-medium text-[rgb(var(--color-text-secondary))]">
+            2.0.0
+          </span>
+        </div> */}
+
+        {/* <div className="flex justify-between">
           <span>Kết nối API</span>
           <span className="flex items-center space-x-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
